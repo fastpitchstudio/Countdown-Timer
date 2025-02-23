@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer</title>
+</head>
+<body>
+    <h2>Countdown Timer</h2>
+    <input type="number" id="timeInput" placeholder="Enter time in seconds" step="0.1">
+    <button onclick="startTimer()">Start Timer</button>
+    <p id="display"></p>
+
+    <script>
+        class CountdownTimer {
+            constructor(duration, onEnd) {
+                this.duration = duration;
+                this.onEnd = onEnd;
+                this.startTime = null;
+                this.remainingTime = duration * 1000; // Convert seconds to milliseconds
+                this.timerId = null;
+            }
+
+            start() {
+                this.startTime = performance.now();
+                this.tick();
+            }
+
+            tick() {
+                this.timerId = requestAnimationFrame(() => {
+                    const elapsedTime = performance.now() - this.startTime;
+                    const timeLeft = Math.max(this.remainingTime - elapsedTime, 0);
+
+                    document.getElementById('display').textContent = `Time Left: ${(timeLeft / 1000).toFixed(3)}s`;
+
+                    if (timeLeft > 0) {
+                        this.tick();
+                    } else {
+                        this.playSound();
+                        if (this.onEnd) this.onEnd();
+                    }
+                });
+            }
+
+            playSound() {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                oscillator.connect(audioCtx.destination);
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                    audioCtx.close();
+                }, 200);
+            }
+        }
+
+        function startTimer() {
+            const timeInput = document.getElementById('timeInput').value;
+            if (timeInput) {
+                const timer = new CountdownTimer(parseFloat(timeInput), () => alert("Time's up!"));
+                timer.start();
+            }
+        }
+    </script>
+</body>
+</html>
